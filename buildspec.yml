@@ -1,12 +1,16 @@
 version: 0.2
 
+env:
+  variables:
+    REPOSITORY_URI: 732203471303.dkr.ecr.ap-south-1.amazonaws.com/demo
+    IMAGE_TAG: latest
+
 phases:
+
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 732203471303.dkr.ecr.ap-south-1.amazonaws.com
-      - REPOSITORY_URI=732203471303.dkr.ecr.ap-south-1.amazonaws.com/demo
-      - IMAGE_TAG=latest
+      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $REPOSITORY_URI
 
   build:
     commands:
@@ -16,6 +20,13 @@ phases:
 
   post_build:
     commands:
-      - echo Pushing Docker image...
+      - echo Pushing Docker image to ECR...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo Build completed
+      - echo Build completed successfully
+
+      # THIS FILE TELLS ECS WHAT IMAGE TO DEPLOY (IMPORTANT)
+      - printf '[{"name":"demo","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
