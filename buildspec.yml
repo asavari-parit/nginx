@@ -5,17 +5,17 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 732203471303.dkr.ecr.ap-south-1.amazonaws.com
-      - REPOSITORY_URI=732203471303.dkr.ecr.ap-south-1.amazonaws.com/nginx-app
+      - REPOSITORY_URI=732203471303.dkr.ecr.ap-south-1.amazonaws.com/demo
       - IMAGE_TAG=latest
 
   build:
     commands:
-      - echo Build started
-      - docker build -t nginx-app .
-      - docker tag nginx-app:latest $REPOSITORY_URI:$IMAGE_TAG
+      - echo Build Docker image started...
+      - docker build -t demo .
+      - docker tag demo:latest $REPOSITORY_URI:$IMAGE_TAG
 
   post_build:
     commands:
-      - echo Pushing image...
+      - echo Pushing Docker image...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Build completed
