@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   variables:
-    REPOSITORY_URI: 732203471303.dkr.ecr.ap-south-1.amazonaws.com/demo
+    REPOSITORY_URI: 732203471303.dkr.ecr.ap-south-1.amazonaws.com/my-repo
     IMAGE_TAG: latest
 
 phases:
