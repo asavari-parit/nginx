@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx
-  namespace: eksfargate   #  MUST match Fargate profile
+  namespace: eksfargate
 spec:
   replicas: 2
   selector:
@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: <ACCOUNT_ID>.dkr.ecr.ap-south-1.amazonaws.com/nginx-app:latest
+        image: 732203471303.dkr.ecr.ap-south-1.amazonaws.com/my-ecr:latest
         ports:
         - containerPort: 80
