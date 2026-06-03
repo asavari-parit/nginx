@@ -4,13 +4,15 @@ env:
   variables:
     REPOSITORY_URI: 732203471303.dkr.ecr.ap-south-1.amazonaws.com/my-ecr
     IMAGE_TAG: latest
+    CLUSTER_NAME: your-eks-cluster
+    REGION: ap-south-1
 
 phases:
 
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $REPOSITORY_URI
+      - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
 
   build:
     commands:
@@ -22,11 +24,12 @@ phases:
     commands:
       - echo Pushing Docker image to ECR...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
+
+      - echo Updating kubeconfig for EKS...
+      - aws eks update-kubeconfig --name $CLUSTER_NAME --region $REGION
+
+      - echo Deploying to EKS...
+      - kubectl apply -f deployment.yaml
+      - kubectl apply -f service.yaml
+
       - echo Build completed successfully
-
-      # THIS FILE TELLS ECS WHAT IMAGE TO DEPLOY (IMPORTANT)
-      - printf '[{"name":"my-repo","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
-
-artifacts:
-  files:
-    - imagedefinitions.json
