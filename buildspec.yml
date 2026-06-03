@@ -5,8 +5,7 @@ env:
     AWS_REGION: ap-south-1
     REPOSITORY_URI: 732203471303.dkr.ecr.ap-south-1.amazonaws.com/my-ecr
     IMAGE_TAG: latest
-    CLUSTER_NAME: demo-eks-cluster
-    NAMESPACE: eksfargate
+    CLUSTER_NAME: demo-cluster   # IMPORTANT FIX
 
 phases:
 
@@ -14,17 +13,16 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
-      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
   build:
     commands:
-      - echo Build Docker image...
+      - echo Building Docker image...
       - docker build -t nginx-app .
       - docker tag nginx-app:latest $REPOSITORY_URI:$IMAGE_TAG
 
   post_build:
     commands:
-      - echo Pushing image to ECR...
+      - echo Pushing image...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
 
       - echo Updating kubeconfig...
@@ -34,8 +32,6 @@ phases:
       - kubectl apply -f namespace.yaml
       - kubectl apply -f deployment.yaml
       - kubectl apply -f service.yaml
-
-      - echo DONE
 
 artifacts:
   files:
