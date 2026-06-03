@@ -5,38 +5,40 @@ env:
     AWS_REGION: ap-south-1
     REPOSITORY_URI: 732203471303.dkr.ecr.ap-south-1.amazonaws.com/my-ecr
     IMAGE_TAG: latest
-    CLUSTER_NAME: your-eks-cluster
+    CLUSTER_NAME: demo-eks-cluster
+    NAMESPACE: eksfargate
 
 phases:
 
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - aws --version
-      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
+      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
   build:
     commands:
-      - echo Build Docker image started...
-      - docker build -t demo .
-      - docker tag demo:latest $REPOSITORY_URI:$IMAGE_TAG
+      - echo Build Docker image...
+      - docker build -t nginx-app .
+      - docker tag nginx-app:latest $REPOSITORY_URI:$IMAGE_TAG
 
   post_build:
     commands:
-      - echo Pushing Docker image to ECR...
+      - echo Pushing image to ECR...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
 
-      - echo Updating kubeconfig for EKS...
+      - echo Updating kubeconfig...
       - aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION
 
       - echo Deploying to EKS...
+      - kubectl apply -f namespace.yaml
       - kubectl apply -f deployment.yaml
       - kubectl apply -f service.yaml
 
-      - echo Deployment completed successfully
+      - echo DONE
 
 artifacts:
   files:
     - deployment.yaml
     - service.yaml
+    - namespace.yaml
