@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: fargate   # 👈 MUST match Fargate profile
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: <ACCOUNT_ID>.dkr.ecr.ap-south-1.amazonaws.com/nginx-app:latest
+        ports:
+        - containerPort: 80
