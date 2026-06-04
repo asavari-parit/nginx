@@ -5,7 +5,7 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 732203471303.dkr.ecr.ap-south-1.amazonaws.com
-      - 732203471303.dkr.ecr.ap-south-1.amazonaws.com/my-ecr
+      - REPOSITORY_URI=732203471303.dkr.ecr.ap-south-1.amazonaws.com/nginx-app
       - IMAGE_TAG=latest
 
   build:
@@ -16,7 +16,16 @@ phases:
 
   post_build:
     commands:
-      - echo Deploying to EKS...
+      - echo Configuring kubectl for EKS...
       - aws eks update-kubeconfig --name ecs_cluster --region ap-south-1
+
+      - echo Applying Kubernetes manifests...
+      - kubectl apply -f namespace.yaml
+      - kubectl apply -f deployment.yaml
+      - kubectl apply -f service.yaml
+
+      - echo Updating image in deployment...
       - kubectl set image deployment/nginx nginx=$REPOSITORY_URI:$IMAGE_TAG -n eksfargate
+
+      - echo Restarting rollout...
       - kubectl rollout restart deployment nginx -n eksfargate
