@@ -16,9 +16,7 @@ phases:
 
   post_build:
     commands:
-      - echo Build completed on `date`
-      - printf '[{"name":"nginx","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
-
-artifacts:
-  files:
-    - imagedefinitions.json
+      - echo Deploying to EKS...
+      - aws eks update-kubeconfig --name ecs_cluster --region ap-south-1
+      - kubectl set image deployment/nginx nginx=$REPOSITORY_URI:$IMAGE_TAG -n eksfargate
+      - kubectl rollout restart deployment nginx -n eksfargate
