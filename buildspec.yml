@@ -1,26 +1,35 @@
 version: 0.2
 
-phases:
-  install:
-    commands:
-      - echo "Installing kubectl"
-      - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-      - chmod +x kubectl
-      - mv kubectl /usr/local/bin/
+env:
+  variables:
+    AWS_DEFAULT_REGION: ap-south-1
+    CLUSTER_NAME: demo-eks
+    IMAGE_REPO_NAME: eks-repo
+    IMAGE_TAG: latest
 
+phases:
   pre_build:
     commands:
-      - echo "Updating kubeconfig"
-      - aws eks update-kubeconfig --region ap-south-1 --name demo-eks
+      - echo Logging in to Amazon ECR
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin 732203471303.dkr.ecr.ap-south-1.amazonaws.com
 
   build:
     commands:
-      - echo "Deploying application"
-      - kubectl apply -f deployment.yaml
-      - kubectl apply -f service.yaml
+      - echo Building Docker image
+      - docker build -t $IMAGE_REPO_NAME .
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG 732203471303.dkr.ecr.ap-south-1.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
 
   post_build:
     commands:
-      - echo "Deployment completed"
-      - kubectl get pods
-      - kubectl get svc
+      - echo Pushing image to ECR
+      - docker push 732203471303.dkr.ecr.ap-south-1.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+
+      - echo Updating kubeconfig
+      - aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $CLUSTER_NAME
+
+      - kubectl apply -f deployment.yaml
+      - kubectl apply -f service.yaml
+
+artifacts:
+  files:
+    - '**/*'
