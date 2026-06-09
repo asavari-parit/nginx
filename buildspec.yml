@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
     AWS_DEFAULT_REGION: ap-south-1
-    CLUSTER_NAME: demo-eks
+    CLUSTER_NAME: eks-demo-cluster
     IMAGE_REPO_NAME: eks-repo
     IMAGE_TAG: latest
 
